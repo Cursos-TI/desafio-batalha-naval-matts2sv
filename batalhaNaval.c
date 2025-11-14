@@ -3,6 +3,8 @@
 #define TABULEIRO 10
 #define NAVIO 3
 #define AGUA 0
+#define HABILIDADE 5  // valor para marcar área afetada
+#define TAM_HAB 5     // tamanho das matrizes das habilidades
 
 // Desafio Batalha Naval - MateCheck
 // Este código inicial serve como base para o desenvolvimento do sistema de Batalha Naval.
@@ -51,45 +53,123 @@ int main() {
         }
     }
 
-    // Exibição da posição dos navios
+    // Matrizes de Habilidades
 
-    printf("\nCoordenadas do Navio Horizontal:\n\n");
-    for (int i = 0; i < 3; i++) {
-        printf("Linha %d, Coluna %d\n", linhaH, colunaH + i); 
-    }
-    
-    printf("\n\n##################################\n\n");
+    int cone[TAM_HAB][TAM_HAB] = {0};
+    int cruz[TAM_HAB][TAM_HAB] = {0};
+    int octaedro[TAM_HAB][TAM_HAB] = {0};
 
-    printf("\n\nCoordenadas do Navio Vertical:\n\n");
-    for (int i = 0; i < 3; i++) {
-        printf("Linha %d, Coluna %d\n", linhaV + i, colunaV); 
-    }
+    int centro = TAM_HAB / 2; // centro das matrizes
 
-    printf("\n\n##################################\n\n");
-
-    printf("\nCoordenadas do Navio Diagonal 1:\n\n");
-    for (int i = 0; i < 3; i++) {
-        printf("Linha %d, Coluna %d\n", linhaD1 + i, colunaD1 + i);
+    // Cone — área expandindo para baixo
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            int limite = i; 
+            if (j >= centro - limite && j <= centro + limite) {
+                cone[i][j] = 1;
+            }
+        }
     }
 
-    printf("\n\n##################################\n\n");
-
-    printf("Coordenadas do Navio Diagonal 2:\n\n");
-    for (int i = 0; i < 3; i++) {
-        printf("Linha %d, Coluna %d\n", linhaD2 + i, colunaD2 - i);
+    // Cruz — linhas central e vertical
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            if (i == centro || j == centro) {
+                cruz[i][j] = 1;
+            }
+        }
     }
 
-    printf("\n\n##################################\n\n");
+    // Octaedro — forma de losango
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            if (abs(i - centro) + abs(j - centro) <= centro) {
+                octaedro[i][j] = 1;
+            }
+        }
+    }
+
+    // Sobreposição no Tabuleiro
+
+
+    int origemConeLin = 6, origemConeCol = 2;
+    int origemCruzLin = 4, origemCruzCol = 4;
+    int origemOctLin  = 7, origemOctCol = 7;
+
+    // Cone
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+
+            int tabLin = origemConeLin + i - centro;
+            int tabCol = origemConeCol + j - centro;
+
+            if (cone[i][j] == 1 &&
+                tabLin >= 0 && tabLin < TABULEIRO &&
+                tabCol >= 0 && tabCol < TABULEIRO &&
+                tabuleiro[tabLin][tabCol] == AGUA) {
+
+                tabuleiro[tabLin][tabCol] = HABILIDADE;
+            }
+        }
+    }
+
+    // Cruz
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+
+            int tabLin = origemCruzLin + i - centro;
+            int tabCol = origemCruzCol + j - centro;
+
+            if (cruz[i][j] == 1 &&
+                tabLin >= 0 && tabLin < TABULEIRO &&
+                tabCol >= 0 && tabCol < TABULEIRO &&
+                tabuleiro[tabLin][tabCol] == AGUA) {
+
+                tabuleiro[tabLin][tabCol] = HABILIDADE;
+            }
+        }
+    }
+
+    // Octaedro
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+
+            int tabLin = origemOctLin + i - centro;
+            int tabCol = origemOctCol + j - centro;
+
+            if (octaedro[i][j] == 1 &&
+                tabLin >= 0 && tabLin < TABULEIRO &&
+                tabCol >= 0 && tabCol < TABULEIRO &&
+                tabuleiro[tabLin][tabCol] == AGUA) {
+
+                tabuleiro[tabLin][tabCol] = HABILIDADE;
+            }
+        }
+    }
 
     //Tabuleiro completo:
 
     printf("\n\n ### Tabuleiro de batalha naval ###\n\n");
     for (int y = 0; y < TABULEIRO; y++) {
         for (int z = 0; z < TABULEIRO; z++) {
-            printf("%2d ", tabuleiro[y][z]);
+
+            if (tabuleiro[y][z] == AGUA) {
+                printf(" . ");   // Água (0)
+            }
+            else if (tabuleiro[y][z] == NAVIO) {
+                printf(" N ");   // Navio (3)
+            }
+            else if (tabuleiro[y][z] == HABILIDADE) {
+                printf(" * ");   // Área de habilidade (5)
+            }
+            else {
+                printf("%2d ", tabuleiro[y][z]);
+            }
         }
         printf("\n");
     }
+
+    printf("\nLegenda:\n. = Água\nN = Navio\n* = Área da habilidade\n\n");
 
     return 0;
 }
